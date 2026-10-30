@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} – {{ title }} – LostLink{% endblock %}
+
+{% block content %}
+<div class="container-narrow">
+  <div class="card" style="text-align:center; padding:3rem 2rem;">
+    <div style="font-size:3.2rem; font-weight:800; color:#dc2626; line-height:1;">{{ code }}</div>
+    <h1 style="font-size:1.5rem; font-weight:700; margin:0.65rem 0;">{{ title }}</h1>
+    <p style="color:#475569; margin-bottom:1.75rem;">{{ message }}</p>
+    <div style="display:flex; justify-content:center; gap:0.75rem;">
+      <a href="{{ url_for('main.index') }}" class="btn btn-primary">Return to Home Page</a>
+      <a href="{{ url_for('main.item_listings') }}" class="btn btn-light">View Item Listings</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="55%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="bldg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#334155" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#1e293b" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="520" fill="url(#sky)"/>
+  <!-- Campus architectural silhouette matching Figure 7.1 -->
+  <g fill="url(#bldg)">
+    <rect x="80" y="210" width="240" height="260" rx="4"/>
+    <rect x="320" y="160" width="320" height="310" rx="4"/>
+    <polygon points="480,95 360,160 600,160"/>
+    <rect x="465" y="60" width="30" height="45"/>
+    <rect x="640" y="190" width="290" height="280" rx="4"/>
+    <rect x="930" y="150" width="260" height="320" rx="4"/>
+    <polygon points="1060,100 950,150 1170,150"/>
+    <rect x="1190" y="220" width="180" height="250" rx="4"/>
+  </g>
+  <!-- Warm campus window lights -->
+  <g fill="#fbbf24" opacity="0.22">
+    <rect x="360" y="190" width="24" height="32" rx="2"/><rect x="405" y="190" width="24" height="32" rx="2"/><rect x="450" y="190" width="24" height="32" rx="2"/><rect x="510" y="190" width="24" height="32" rx="2"/><rect x="555" y="190" width="24" height="32" rx="2"/>
+    <rect x="360" y="245" width="24" height="32" rx="2"/><rect x="405" y="245" width="24" height="32" rx="2"/><rect x="510" y="245" width="24" height="32" rx="2"/><rect x="555" y="245" width="24" height="32" rx="2"/>
+    <rect x="680" y="225" width="22" height="28" rx="2"/><rect x="725" y="225" width="22" height="28" rx="2"/><rect x="770" y="225" width="22" height="28" rx="2"/><rect x="815" y="225" width="22" height="28" rx="2"/>
+    <rect x="970" y="185" width="24" height="32" rx="2"/><rect x="1020" y="185" width="24" height="32" rx="2"/><rect x="1070" y="185" width="24" height="32" rx="2"/><rect x="1120" y="185" width="24" height="32" rx="2"/>
+  </g>
+  <!-- Foreground campus trees & lawn -->
+  <path d="M0 440 Q 360 410, 720 440 T 1440 430 L 1440 520 L 0 520 Z" fill="#064e3b" opacity="0.45"/>
+</svg>

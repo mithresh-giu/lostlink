@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Administrator Dashboard – LostLink{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+    <h1 style="font-size:1.55rem; font-weight:800; color:#0f172a;">Administrator Dashboard</h1>
+    <span style="font-size:0.86rem; color:#475569;">Logged in as <strong>{{ g.user.full_name }}</strong> ({{ g.user.role|upper }})</span>
+  </div>
+
+  <!-- Summary Cards Matching Figure 7.7 Verbatim -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-blue">&#128202;</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Items</span>
+        <span class="stat-value" id="admin-total-items">{{ stats.total_items }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-orange">&#10067;</div>
+      <div class="stat-info">
+        <span class="stat-label">Lost Items</span>
+        <span class="stat-value" id="admin-lost-items">{{ stats.lost_items }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-green">&#128269;</div>
+      <div class="stat-info">
+        <span class="stat-label">Found Items</span>
+        <span class="stat-value" id="admin-found-items">{{ stats.found_items }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-red">&#128203;</div>
+      <div class="stat-info">
+        <span class="stat-label">Pending Reports</span>
+        <span class="stat-value" id="admin-pending-reports">{{ stats.pending_reports }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Reports Management Table (Figure 7.7) -->
+  <div class="card" style="margin-bottom:1.75rem;">
+    <div class="card-header">
+      <h2 class="card-title" style="font-size:1.2rem;">Recent Reports</h2>
+      <span style="font-size:0.84rem; color:#64748b;">Review item information, update statuses, or remove inappropriate entries</span>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Item Name</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td>{{ item.id }}</td>
+            <td>
+              <strong>{{ item.title }}</strong>
+              <div style="font-size:0.78rem; color:#64748b;">{{ item.contact_name }} ({{ item.contact_email }})</div>
+            </td>
+            <td>
+              <span class="{% if item.item_type == 'Lost' %}type-label-lost{% else %}type-label-found{% endif %}">
+                {{ item.item_type }}
+              </span>
+            </td>
+            <td>{{ item.location }}</td>
+            <td>{{ item.date_reported }}</td>
+            <td>
+              <span class="badge badge-{{ item.status|lower }}">{{ item.status }}</span>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.45rem; flex-wrap:wrap;">
+                <a href="{{ url_for('main.item_details', item_id=item.id) }}" class="btn btn-primary btn-sm">View</a>
+
+                <form method="POST" action="{{ url_for('main.admin_update_item_status', item_id=item.id) }}" style="display:inline-flex; gap:0.25rem;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <select name="status" class="form-control" style="padding:0.26rem 0.45rem; font-size:0.78rem; width:auto;" aria-label="Change Status">
+                    {% for st in ['Pending', 'Available', 'Claimed', 'Resolved', 'Rejected'] %}
+                      <option value="{{ st }}" {% if item.status == st %}selected{% endif %}>{{ st }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn btn-light btn-sm">Update</button>
+                </form>
+
+                <form method="POST" action="{{ url_for('main.admin_delete_item', item_id=item.id) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Ownership Claims & Verification Review Queue (Chapter 10.3.6) -->
+  <div class="card" style="margin-bottom:1.75rem;">
+    <div class="card-header">
+      <h2 class="card-title" style="font-size:1.2rem;">Ownership Claims &amp; Verification Queue ({{ claims|length }})</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Claim ID</th>
+            <th>Item</th>
+            <th>Claimant</th>
+            <th>Type</th>
+            <th>Proof / Verification Details</th>
+            <th>Status</th>
+            <th>Review Decision</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in claims %}
+          <tr>
+            <td>#{{ c.id }}</td>
+            <td>
+              <a href="{{ url_for('main.item_details', item_id=c.item_id) }}"><strong>#{{ c.item_id }} {{ c.item_title }}</strong></a>
+              <div style="font-size:0.78rem; color:#64748b;">{{ c.item_location }}</div>
+            </td>
+            <td>
+              <strong>{{ c.claimant_name }}</strong>
+              <div style="font-size:0.78rem; color:#64748b;">{{ c.claimant_email }} &bull; {{ c.claimant_phone }}</div>
+            </td>
+            <td>{{ c.claim_type }}</td>
+            <td style="max-width:280px;">{{ c.proof_description }}</td>
+            <td><span class="badge badge-{{ c.status|lower if c.status != 'Approved' else 'available' }}">{{ c.status }}</span></td>
+            <td>
+              {% if c.status == 'Pending' %}
+              <form method="POST" action="{{ url_for('main.admin_review_claim', claim_id=c.id) }}" style="display:flex; gap:0.35rem; align-items:center;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="admin_notes" class="form-control" placeholder="Verification note..." style="font-size:0.78rem; padding:0.28rem 0.5rem; width:130px;">
+                <button type="submit" name="decision" value="Approved" class="btn btn-success btn-sm">Approve</button>
+                <button type="submit" name="decision" value="Rejected" class="btn btn-danger btn-sm">Reject</button>
+              </form>
+              {% else %}
+              <span style="font-size:0.8rem; color:#64748b;">{{ c.admin_notes or 'Reviewed' }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" style="text-align:center; padding:1.25rem;">No ownership claims submitted yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Audit Log Table -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title" style="font-size:1.15rem;">Recent Security &amp; Activity Audit Logs</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Actor</th>
+            <th>Action</th>
+            <th>Target</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in audit_logs %}
+          <tr>
+            <td style="font-size:0.82rem; color:#64748b;">{{ log.created_at }}</td>
+            <td><strong>{{ log.actor_name }}</strong></td>
+            <td><code>{{ log.action }}</code></td>
+            <td>{{ log.target_type }} #{{ log.target_id }}</td>
+            <td>{{ log.details }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

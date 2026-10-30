@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Search Results – LostLink{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h1 class="card-title">Search Results</h1>
+    </div>
+
+    <form method="GET" action="{{ url_for('main.search') }}">
+      <div class="search-bar-row">
+        <input
+          type="text"
+          name="q"
+          class="form-control"
+          placeholder="Search by keyword (e.g. wallet, ID card, library, backpack)..."
+          value="{{ q }}"
+          aria-label="Search Keyword"
+        >
+        <button type="submit" class="btn btn-primary" style="min-width:120px;">Search</button>
+      </div>
+
+      <details {% if item_type or category or location or date_from or date_to or status %}open{% endif %} style="margin-bottom:1.25rem; background:#f8fafc; padding:0.85rem 1rem; border-radius:8px; border:1px solid #e2e8f0;">
+        <summary style="cursor:pointer; font-weight:600; font-size:0.88rem; color:#334155;">
+          Advanced Search Filters (Category, Location, Type, Date Range)
+        </summary>
+        <div class="form-row" style="margin-top:0.85rem;">
+          <div class="form-group" style="margin-bottom:0.5rem;">
+            <label class="form-label">Report Type</label>
+            <select name="type" class="form-control">
+              <option value="">All Types (Lost &amp; Found)</option>
+              <option value="Lost" {% if item_type == 'Lost' %}selected{% endif %}>Lost Items Only</option>
+              <option value="Found" {% if item_type == 'Found' %}selected{% endif %}>Found Items Only</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem;">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-control">
+              <option value="">All Categories</option>
+              {% for cat in categories %}
+                <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem;">
+            <label class="form-label">Campus Location</label>
+            <input type="text" name="location" list="search-locations" class="form-control" placeholder="e.g. Library" value="{{ location }}">
+            <datalist id="search-locations">
+              {% for loc in locations %}
+                <option value="{{ loc }}">
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem;">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-control">
+              <option value="">All Statuses</option>
+              {% for st in ['Pending', 'Available', 'Claimed', 'Resolved'] %}
+                <option value="{{ st }}" {% if status == st %}selected{% endif %}>{{ st }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Date From</label>
+            <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Date To</label>
+            <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+          </div>
+        </div>
+      </details>
+    </form>
+
+    <div style="margin-bottom:1rem; font-weight:600; color:#475569; font-size:0.95rem;">
+      Search Results ({{ results|length }} item{% if results|length != 1 %}s{% endif %} found)
+    </div>
+
+    {% for item in results %}
+    <div class="result-card">
+      <img
+        src="{{ url_for('static', filename='uploads/' ~ (item.image_filename or 'default_item.svg')) }}"
+        alt="{{ item.title }}"
+        class="result-thumb"
+      >
+      <div style="flex:1;">
+        <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.35rem;">
+          <h3 style="font-size:1.18rem; font-weight:700; color:#0f172a;">{{ item.title }}</h3>
+          <span class="badge {% if item.item_type == 'Lost' %}badge-lost{% else %}badge-found{% endif %}">{{ item.item_type }}</span>
+          <span class="badge badge-{{ item.status|lower }}">{{ item.status }}</span>
+        </div>
+        <div style="font-size:0.88rem; color:#475569; margin-bottom:0.2rem;">
+          <strong>Location:</strong> {{ item.location }} &bull; <strong>Category:</strong> {{ item.category }}
+        </div>
+        <div style="font-size:0.88rem; color:#475569; margin-bottom:0.35rem;">
+          <strong>Date:</strong> {{ item.date_reported }}
+        </div>
+        <p style="font-size:0.9rem; color:#334155; margin-bottom:0.75rem;">
+          <strong>Description:</strong> {{ item.description }}
+        </p>
+        <a href="{{ url_for('main.item_details', item_id=item.id) }}" class="btn btn-primary btn-sm">View Details</a>
+      </div>
+    </div>
+    {% else %}
+    <div style="text-align:center; padding:2.5rem 1rem; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1;">
+      <h3 style="font-size:1.1rem; color:#334155; margin-bottom:0.4rem;">No Matching Items Found</h3>
+      <p style="color:#64748b; font-size:0.92rem; margin-bottom:1rem;">
+        No lost or found records matched your search criteria{% if q %} for "{{ q }}"{% endif %}.
+      </p>
+      <a href="{{ url_for('main.item_listings') }}" class="btn btn-light btn-sm">Browse All Items</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

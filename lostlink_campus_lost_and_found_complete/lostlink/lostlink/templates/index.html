@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}LostLink – Campus Lost and Found Management System{% endblock %}
+
+{% block content %}
+<section class="hero-banner">
+  <h1 class="hero-title">LostLink</h1>
+  <p class="hero-subtitle">Campus Lost and Found Management System</p>
+  <p class="hero-tagline">Report lost items, find found items, and help your campus community.</p>
+  <div class="hero-actions">
+    <a href="{{ url_for('main.report_lost') }}" class="btn btn-primary">&#128221; Report Lost Item</a>
+    <a href="{{ url_for('main.report_found') }}" class="btn btn-success">&#128230; Report Found Item</a>
+    <a href="{{ url_for('main.item_listings') }}" class="btn btn-light">&#128203; View Items</a>
+    <a href="{{ url_for('main.search') }}" class="btn btn-light">&#128269; Search</a>
+  </div>
+</section>
+
+<div class="container">
+  <div class="stats-grid" aria-label="Campus Summary Statistics">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-blue">&#128202;</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Items</span>
+        <span class="stat-value">{{ stats.total_items }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-orange">&#10067;</div>
+      <div class="stat-info">
+        <span class="stat-label">Lost Items</span>
+        <span class="stat-value">{{ stats.lost_items }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-green">&#128269;</div>
+      <div class="stat-info">
+        <span class="stat-label">Found Items</span>
+        <span class="stat-value">{{ stats.found_items }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-red">&#128203;</div>
+      <div class="stat-info">
+        <span class="stat-label">Pending Reports</span>
+        <span class="stat-value">{{ stats.pending_reports }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Recent Campus Reports</h2>
+      <a href="{{ url_for('main.item_listings') }}" class="btn btn-primary btn-sm">View All Listings &rarr;</a>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Item Name</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in recent_items %}
+          <tr>
+            <td>{{ item.id }}</td>
+            <td><strong>{{ item.title }}</strong></td>
+            <td>
+              <span class="{% if item.item_type == 'Lost' %}type-label-lost{% else %}type-label-found{% endif %}">
+                {{ item.item_type }}
+              </span>
+            </td>
+            <td>{{ item.location }}</td>
+            <td>{{ item.date_reported }}</td>
+            <td>
+              <span class="badge badge-{{ item.status|lower }}">{{ item.status }}</span>
+            </td>
+            <td>
+              <a href="{{ url_for('main.item_details', item_id=item.id) }}" class="btn btn-primary btn-sm">View</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" style="text-align:center; padding:1.5rem;">No items have been reported yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

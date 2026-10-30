@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}LostLink – Campus Lost and Found Management System{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="navbar" role="banner">
+    <a href="{{ url_for('main.index') }}" class="navbar-brand">
+      <span>LostLink</span>
+      <span class="navbar-brand-badge">KPRIET Campus</span>
+    </a>
+    <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle Navigation">&#9776; Menu</button>
+    <nav aria-label="Primary Navigation">
+      <ul id="nav-links" class="nav-links">
+        <li><a href="{{ url_for('main.index') }}" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
+        <li><a href="{{ url_for('main.report_lost') }}" class="{% if request.path == '/report-lost' %}active{% endif %}">Lost Item</a></li>
+        <li><a href="{{ url_for('main.report_found') }}" class="{% if request.path == '/report-found' %}active{% endif %}">Found Item</a></li>
+        <li><a href="{{ url_for('main.item_listings') }}" class="{% if request.path == '/items' %}active{% endif %}">View Items</a></li>
+        <li><a href="{{ url_for('main.search') }}" class="{% if request.path == '/search' %}active{% endif %}">Search</a></li>
+        {% if g.user %}
+          {% if g.user.role in ('admin', 'staff') %}
+            <li><a href="{{ url_for('main.admin_dashboard') }}" class="{% if request.path.startswith('/admin') %}active{% endif %}">Admin</a></li>
+          {% endif %}
+          <li>
+            <a href="{{ url_for('auth.notifications') }}" class="{% if request.path.startswith('/notifications') %}active{% endif %}">
+              Alerts
+              {% if g.unread_notifications_count and g.unread_notifications_count > 0 %}
+                <span class="notif-pill">{{ g.unread_notifications_count }}</span>
+              {% endif %}
+            </a>
+          </li>
+          <li><a href="{{ url_for('auth.logout') }}">Logout ({{ g.user.register_no }})</a></li>
+        {% else %}
+          <li><a href="{{ url_for('auth.login') }}" class="{% if request.path == '/login' %}active{% endif %}">Login</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container" role="region" aria-label="System Notifications">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main class="main-content" role="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <div>
+        <strong>LostLink – Campus Lost and Found Management System</strong><br>
+        <span>Department of Information Technology &bull; {{ campus_name }}, {{ campus_location }}</span>
+      </div>
+      <div>
+        <span>{{ university_name }} &bull; B.Tech IT Mini Project (Oct 2026)</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

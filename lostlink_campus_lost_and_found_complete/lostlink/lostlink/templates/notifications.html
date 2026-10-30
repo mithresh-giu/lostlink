@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Notifications &amp; My Activity – LostLink{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">
+      <h1 class="card-title">Automatic Match Alerts &amp; Notifications</h1>
+      {% if notifications %}
+      <form method="POST" action="{{ url_for('auth.mark_notifications_read') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-light btn-sm">Mark All as Read</button>
+      </form>
+      {% endif %}
+    </div>
+
+    {% for n in notifications %}
+    <div style="padding:1rem; border-radius:8px; margin-bottom:0.75rem; border:1px solid {% if not n.is_read %}#93c5fd{% else %}#e2e8f0{% endif %}; background:{% if not n.is_read %}#eff6ff{% else %}#ffffff{% endif %}; display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+      <div>
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
+          <strong>{{ n.title }}</strong>
+          {% if not n.is_read %}<span class="badge badge-claimed">New</span>{% endif %}
+          <span style="font-size:0.78rem; color:#64748b;">{{ n.created_at }}</span>
+        </div>
+        <p style="font-size:0.9rem; color:#334155;">{{ n.message }}</p>
+      </div>
+      {% if n.item_id %}
+      <a href="{{ url_for('main.item_details', item_id=n.item_id) }}" class="btn btn-primary btn-sm">View Item #{{ n.item_id }}</a>
+      {% endif %}
+    </div>
+    {% else %}
+    <p style="color:#64748b; padding:1rem 0;">You have no notifications yet.</p>
+    {% endfor %}
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">
+      <h2 class="card-title" style="font-size:1.2rem;">My Submitted Item Reports ({{ my_items|length }})</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Item Name</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in my_items %}
+          <tr>
+            <td>#{{ item.id }}</td>
+            <td><strong>{{ item.title }}</strong></td>
+            <td><span class="{% if item.item_type == 'Lost' %}type-label-lost{% else %}type-label-found{% endif %}">{{ item.item_type }}</span></td>
+            <td>{{ item.location }}</td>
+            <td>{{ item.date_reported }}</td>
+            <td><span class="badge badge-{{ item.status|lower }}">{{ item.status }}</span></td>
+            <td><a href="{{ url_for('main.item_details', item_id=item.id) }}" class="btn btn-primary btn-sm">View</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" style="text-align:center;">You have not submitted any reports yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title" style="font-size:1.2rem;">My Ownership Claims &amp; Inquiries ({{ my_claims|length }})</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Claim ID</th>
+            <th>Item</th>
+            <th>Type</th>
+            <th>Proof Submitted</th>
+            <th>Status</th>
+            <th>Admin Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in my_claims %}
+          <tr>
+            <td>#{{ c.id }}</td>
+            <td><a href="{{ url_for('main.item_details', item_id=c.item_id) }}"><strong>{{ c.item_title }}</strong></a></td>
+            <td>{{ c.claim_type }}</td>
+            <td>{{ c.proof_description }}</td>
+            <td><span class="badge badge-{{ c.status|lower if c.status != 'Approved' else 'available' }}">{{ c.status }}</span></td>
+            <td>{{ c.admin_notes or 'Pending verification' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" style="text-align:center;">You have not submitted any claims yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

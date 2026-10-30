@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }} – Item Details – LostLink{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="details-grid">
+      <div class="details-image-box">
+        <img
+          src="{{ url_for('static', filename='uploads/' ~ (item.image_filename or 'default_item.svg')) }}"
+          alt="{{ item.title }}"
+        >
+      </div>
+
+      <div>
+        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+          <h1 style="font-size:1.75rem; font-weight:800; color:#0f172a;">{{ item.title }}</h1>
+          <span class="badge {% if item.item_type == 'Lost' %}badge-lost{% else %}badge-found{% endif %}">{{ item.item_type }}</span>
+        </div>
+
+        <table class="details-meta-table">
+          <tbody>
+            <tr>
+              <td class="meta-label">Description</td>
+              <td>: {{ item.description }}</td>
+            </tr>
+            <tr>
+              <td class="meta-label">Location</td>
+              <td>: {{ item.location }}</td>
+            </tr>
+            <tr>
+              <td class="meta-label">Category</td>
+              <td>: {{ item.category }}</td>
+            </tr>
+            <tr>
+              <td class="meta-label">Date</td>
+              <td>: {{ item.date_reported }}</td>
+            </tr>
+            <tr>
+              <td class="meta-label">Status</td>
+              <td>: <span class="badge badge-{{ item.status|lower }}">{{ item.status }}</span></td>
+            </tr>
+            <tr>
+              <td class="meta-label">Reported By</td>
+              <td>: {{ item.contact_name }} ({{ item.contact_email }})</td>
+            </tr>
+            {% if item.verification_hint %}
+            <tr>
+              <td class="meta-label">Verification Prompt</td>
+              <td>: <em>{{ item.verification_hint }}</em></td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+          <button type="button" id="contact-owner-btn" class="btn btn-primary">
+            {% if item.item_type == 'Lost' %}Contact Owner / Report Found Match{% else %}Contact Finder / Claim Ownership{% endif %}
+          </button>
+          <a href="{{ url_for('main.item_listings') }}" class="btn btn-light">&larr; Back to Listings</a>
+        </div>
+
+        <!-- Expandable Contact Owner / Ownership Verification Form -->
+        <div id="claim-form-section" style="display:none; margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid #e2e8f0;">
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.75rem;">
+            {% if item.item_type == 'Lost' %}Contact Owner ({{ item.contact_name }}){% else %}Submit Ownership Claim / Contact Finder{% endif %}
+          </h3>
+          <form method="POST" action="{{ url_for('main.submit_claim', item_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Your Name <span class="required-star">*</span></label>
+                <input type="text" name="claimant_name" class="form-control" value="{{ g.user.full_name if g.user else '' }}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Your Email <span class="required-star">*</span></label>
+                <input type="email" name="claimant_email" class="form-control" value="{{ g.user.email if g.user else '' }}" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Your Phone Number <span class="required-star">*</span></label>
+                <input type="text" name="claimant_phone" class="form-control" value="{{ g.user.phone if g.user else '' }}" placeholder="+91 98422 00000" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Action Type</label>
+                <select name="claim_type" class="form-control">
+                  {% if item.item_type == 'Found' %}
+                    <option value="Ownership Claim">Ownership Claim (This is my item)</option>
+                    <option value="Direct Inquiry">Direct Inquiry to Finder</option>
+                  {% else %}
+                    <option value="Found Match Report">Found Match Report (I found this item)</option>
+                    <option value="Direct Inquiry">Direct Inquiry to Owner</option>
+                  {% endif %}
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Proof of Ownership / Message Details <span class="required-star">*</span></label>
+              <textarea
+                name="proof_description"
+                class="form-control"
+                placeholder="Provide specific identifying details (e.g., card digits, roll number, contents, where to meet on campus)..."
+                required
+              ></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">Send &amp; Register Claim</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Smart Potential Matches Section (Chapter 6.6 & 9.4.4) -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title" style="font-size:1.18rem;">
+        Smart Potential Campus Matches ({{ potential_matches|length }})
+      </h2>
+      <span style="font-size:0.82rem; color:#64748b;">Automated keyword, category, location &amp; date correlation</span>
+    </div>
+    {% if potential_matches %}
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Matching Item</th>
+              <th>Type</th>
+              <th>Location</th>
+              <th>Date</th>
+              <th>Match Confidence</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in potential_matches %}
+            <tr>
+              <td>#{{ m.id }}</td>
+              <td>
+                <strong>{{ m.title }}</strong>
+                <div style="font-size:0.8rem; color:#64748b;">{{ m.description }}</div>
+              </td>
+              <td>
+                <span class="{% if m.item_type == 'Lost' %}type-label-lost{% else %}type-label-found{% endif %}">{{ m.item_type }}</span>
+              </td>
+              <td>{{ m.location }}</td>
+              <td>{{ m.date_reported }}</td>
+              <td><span class="badge badge-available">{{ m.match_confidence }}% Match</span></td>
+              <td><a href="{{ url_for('main.item_details', item_id=m.id) }}" class="btn btn-primary btn-sm">Compare</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color:#64748b; font-size:0.9rem;">No opposite-type reports currently exceed the similarity threshold for this item.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

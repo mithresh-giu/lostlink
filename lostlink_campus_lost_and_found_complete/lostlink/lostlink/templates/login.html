@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Campus Login – LostLink{% endblock %}
+
+{% block content %}
+<div class="container-narrow">
+  <div class="card">
+    <div class="card-header">
+      <h1 class="card-title">Campus User Login</h1>
+      <span class="badge badge-claimed">KPRIET SSO / Portal</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+
+      <div class="form-group">
+        <label for="identifier" class="form-label">Institutional Email or Register Number <span class="required-star">*</span></label>
+        <input
+          type="text"
+          id="identifier"
+          name="identifier"
+          class="form-control"
+          placeholder="e.g. 25IT111 or admin@kpriet.ac.in"
+          value="{{ identifier or '' }}"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password <span class="required-star">*</span></label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-control"
+          placeholder="Enter your password"
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Sign In to LostLink</button>
+    </form>
+
+    <div style="margin-top:1.35rem; padding-top:1rem; border-top:1px solid #e2e8f0; font-size:0.88rem; color:#475569;">
+      <p style="margin-bottom:0.65rem;">New campus student or staff member? <a href="{{ url_for('auth.register') }}"><strong>Create a Campus Account</strong></a></p>
+      <div style="background:#f8fafc; padding:0.75rem 0.95rem; border-radius:6px; border:1px solid #e2e8f0; font-size:0.82rem;">
+        <strong>Demo Credentials for Evaluation / Viva:</strong><br>
+        &bull; <strong>Administrator:</strong> <code>admin@kpriet.ac.in</code> (or <code>ADMIN001</code>) / <code>Admin@123</code><br>
+        &bull; <strong>Faculty / Staff:</strong> <code>rathanaa.it@kpriet.ac.in</code> (or <code>STAFF101</code>) / <code>Staff@123</code><br>
+        &bull; <strong>Student (Nishanth U):</strong> <code>25IT111</code> / <code>Student@123</code>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

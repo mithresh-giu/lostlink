@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Report Lost Item – LostLink{% endblock %}
+
+{% block content %}
+<div class="container-narrow">
+  <div class="card">
+    <div class="card-header">
+      <h1 class="card-title">Report Lost Item</h1>
+      <span class="badge badge-pending">Lost Report</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.report_lost') }}" enctype="multipart/form-data" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-group">
+        <label for="item_name" class="form-label">Item Name <span class="required-star">*</span></label>
+        <input
+          type="text"
+          id="item_name"
+          name="item_name"
+          class="form-control"
+          placeholder="e.g. Wallet"
+          value="{{ form_data.get('item_name', '') }}"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="description" class="form-label">Description <span class="required-star">*</span></label>
+        <textarea
+          id="description"
+          name="description"
+          class="form-control"
+          placeholder="Enter item description (brand, color, distinguishing marks)"
+          required
+        >{{ form_data.get('description', '') }}</textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="location" class="form-label">Location Last Seen <span class="required-star">*</span></label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            list="campus-locations"
+            class="form-control"
+            placeholder="e.g. Library"
+            value="{{ form_data.get('location', '') }}"
+            required
+          >
+          <datalist id="campus-locations">
+            {% for loc in locations %}
+              <option value="{{ loc }}">
+            {% endfor %}
+          </datalist>
+        </div>
+
+        <div class="form-group">
+          <label for="date_reported" class="form-label">Date Lost <span class="required-star">*</span></label>
+          <input
+            type="date"
+            id="date_reported"
+            name="date_reported"
+            class="form-control"
+            value="{{ form_data.get('date_reported', '2026-10-30') }}"
+            required
+          >
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="category" class="form-label">Item Category</label>
+          <select id="category" name="category" class="form-control">
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if form_data.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="image-upload-input" class="form-label">Item Photograph (Optional)</label>
+          <input type="file" id="image-upload-input" name="image" class="form-control" accept=".png,.jpg,.jpeg,.gif,.webp,.svg">
+        </div>
+      </div>
+
+      <div id="image-preview-container" style="display:none; margin-bottom:1rem; text-align:center;">
+        <img id="image-preview-element" src="" alt="Preview" style="max-height:140px; border-radius:8px; border:1px solid #cbd5e1;">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="contact_name" class="form-label">Your Name</label>
+          <input
+            type="text"
+            id="contact_name"
+            name="contact_name"
+            class="form-control"
+            placeholder="e.g. Nishanth U"
+            value="{{ form_data.get('contact_name', g.user.full_name if g.user else '') }}"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="contact_email" class="form-label">Contact Email</label>
+          <input
+            type="email"
+            id="contact_email"
+            name="contact_email"
+            class="form-control"
+            placeholder="e.g. nishanth.25it111@kpriet.ac.in"
+            value="{{ form_data.get('contact_email', g.user.email if g.user else '') }}"
+          >
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="verification_hint" class="form-label">Ownership Verification Question / Hint (Optional)</label>
+        <input
+          type="text"
+          id="verification_hint"
+          name="verification_hint"
+          class="form-control"
+          placeholder="e.g. Card ending digits or roll number inside"
+          value="{{ form_data.get('verification_hint', '') }}"
+        >
+        <p class="form-hint">Helps verify rightful ownership when someone finds your belonging.</p>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Submit</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
